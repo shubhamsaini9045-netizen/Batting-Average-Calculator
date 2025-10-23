@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Batting Average Calculator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        /* Custom scrollbar for aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e0e7ff;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 10px;
+        }
+        .input-group input {
+            transition: all 0.2s ease-in-out;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-10 p-4 bg-white shadow-xl rounded-xl">
+            <h1 class="text-3xl font-extrabold text-gray-800">
+                📊 Batting Average Calculator
+            </h1>
+            <p class="text-gray-500 mt-2">Determine the required win rate considering both winning and losing trades.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- Input Panel -->
+            <div class="bg-white p-6 shadow-xl rounded-xl h-fit">
+                <h2 class="text-2xl font-semibold mb-6 text-indigo-700 border-b pb-3">⚙️ Trading Parameters</h2>
+                
+                <!-- Input Group 1: Capital & Risk -->
+                <div class="input-group mb-4">
+                    <label for="initialCapital" class="block text-sm font-medium text-gray-700">Initial Capital (₹)</label>
+                    <input type="number" id="initialCapital" value="1000000" min="1" oninput="updateCalculations()"
+                           class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                
+                <div class="input-group mb-4">
+                    <label for="riskPerTradePct" class="block text-sm font-medium text-gray-700">Risk % per Trade</label>
+                    <div class="flex items-center">
+                        <input type="number" id="riskPerTradePct" value="1" min="0.1" max="100" step="0.1" oninput="updateCalculations()"
+                               class="mt-1 w-full p-3 border border-gray-300 rounded-l-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        <span class="inline-flex items-center px-4 mt-1 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-r-lg h-12">
+                            %
+                        </span>
+                    </div>
+                </div>
+
+                <div class="input-group mb-4">
+                    <label for="rrRatio" class="block text-sm font-medium text-gray-700">Reward for Unit Risk (R:R Ratio)</label>
+                    <!-- Default R:R set to 4, as it correctly yields 30% BA for 50% target -->
+                    <input type="number" id="rrRatio" value="4" min="1" step="0.1" oninput="updateCalculations()"
+                           class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Input Group 2: Trade & Target -->
+                <div class="input-group mb-4">
+                    <label for="totalTrades" class="block text-sm font-medium text-gray-700">Total Number of Trades</label>
+                    <input type="number" id="totalTrades" value="100" min="1" oninput="updateCalculations()"
+                           class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                
+                <!-- PRIMARY INPUT: Target Return (%) -->
+                <div class="input-group mb-4">
+                    <label for="targetReturnPct" class="block text-sm font-medium text-gray-700">Target Return (%)</label>
+                    <div class="flex items-center">
+                        <input type="number" id="targetReturnPct" value="50" min="0.1" max="1000" step="1" oninput="updateCalculations()"
+                               class="mt-1 w-full p-3 border border-gray-300 rounded-l-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        <span class="inline-flex items-center px-4 mt-1 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-r-lg h-12">
+                            %
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Input Group 3: Position Sizing Helper -->
+                <div class="input-group">
+                    <label for="slPct" class="block text-sm font-medium text-gray-700">SL % wrt Entry Price (For Position Sizing)</label>
+                    <div class="flex items-center">
+                        <input type="number" id="slPct" value="6" min="0.1" max="100" step="0.1" oninput="updateCalculations()"
+                               class="mt-1 w-full p-3 border border-gray-300 rounded-l-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        <span class="inline-flex items-center px-4 mt-1 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-r-lg h-12">
+                            %
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="bg-white p-6 shadow-xl rounded-xl">
+                <h2 class="text-2xl font-semibold mb-6 text-green-700 border-b pb-3">✅ Calculated Metrics</h2>
+                
+                <div id="results" class="space-y-4">
+                    <!-- Dynamic Results will be injected here -->
+                    
+                    <!-- Required Batting Average Card (Highlighted) -->
+                    <div class="p-5 bg-indigo-50 border-2 border-indigo-500 rounded-xl shadow-md">
+                        <p class="text-sm font-medium text-indigo-600">REQUIRED BATTING AVERAGE</p>
+                        <p id="requiredBattingAverage" class="text-4xl font-extrabold text-indigo-700 mt-1">--</p>
+                    </div>
+
+                    <!-- Metric Rows -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-gray-500">Risk Amount (₹)</p>
+                            <p id="riskAmount" class="text-xl font-bold text-gray-900 mt-1">--</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-gray-500">Profit per Win (₹)</p>
+                            <p id="profitPerWin" class="text-xl font-bold text-green-600 mt-1">--</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-gray-500">Loss per Loss (₹)</p>
+                            <p id="lossPerLoss" class="text-xl font-bold text-red-600 mt-1">--</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-gray-500">Target Return (₹)</p>
+                            <p id="targetReturn" class="text-xl font-bold text-gray-900 mt-1">--</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-gray-500">Required Winning Trades (W)</p>
+                            <p id="requiredWins" class="text-xl font-bold text-gray-900 mt-1">--</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm font-medium text-gray-500">Deployment Amount/Trade (₹)</p>
+                            <p id="deploymentAmount" class="text-xl font-bold text-gray-900 mt-1">--</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Position Sizing Alert -->
+                <div id="alertBox" class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 rounded-lg hidden" role="alert">
+                    <p class="font-bold">Heads up on Wins!</p>
+                    <p id="alertMessage" class="text-sm">--</p>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <script>
+        // Helper function for currency formatting (Indian Rupee)
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        });
+
+        // Helper function for percentage formatting
+        const percentFormatter = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+
+        function getInputValue(id) {
+            return parseFloat(document.getElementById(id).value) || 0;
+        }
+
+        function updateCalculations() {
+            // 1. Get Inputs
+            const initialCapital = getInputValue('initialCapital');
+            const riskPerTradePct = getInputValue('riskPerTradePct') / 100;
+            const rrRatio = getInputValue('rrRatio');
+            const totalTrades = getInputValue('totalTrades');
+            const slPct = getInputValue('slPct') / 100; // SL % as a decimal
+            const targetReturnPct = getInputValue('targetReturnPct') / 100; // Target %
+
+            // Check for critical zero values
+            if (initialCapital <= 0 || riskPerTradePct <= 0 || rrRatio <= 0 || totalTrades <= 0) {
+                document.getElementById('requiredBattingAverage').textContent = "N/A";
+                document.getElementById('alertBox').classList.add('hidden');
+                return;
+            }
+
+            // 2. Core Risk/Reward Calculations
+            const riskAmount = initialCapital * riskPerTradePct;
+            const lossPerLoss = riskAmount;
+            const profitPerWin = riskAmount * rrRatio;
+            
+            // 3. Target Calculation
+            const targetReturn = initialCapital * targetReturnPct;
+            
+            let requiredWins = 0;
+            let requiredBattingAverage = 0;
+            
+            if (profitPerWin > 0) {
+                // *** CORRECTED LOGIC: Solve for W (Required Wins) in the Net Profit Equation ***
+                // Net Profit (T) = (W * P) - ((N - W) * L)
+                // Where:
+                // T = targetReturn
+                // P = profitPerWin
+                // L = lossPerLoss (which is riskAmount)
+                // N = totalTrades
+                // The rearranged formula to solve for W is:
+                // W = (T + (N * L)) / (P + L)
+
+                // Required Wins to achieve Target (T) while covering N total trades
+                const numerator = targetReturn + (totalTrades * lossPerLoss);
+                const denominator = profitPerWin + lossPerLoss;
+                
+                if (denominator > 0) {
+                    // Use Math.ceil since you can't have a fraction of a win
+                    requiredWins = Math.ceil(numerator / denominator); 
+                    requiredBattingAverage = (requiredWins / totalTrades) * 100;
+                }
+            }
+
+            // 4. Position Sizing Calculation (Deployment Amount)
+            const deploymentAmount = slPct > 0 ? (riskAmount / slPct) : 0;
+
+
+            // 5. Update Output Fields
+            document.getElementById('riskAmount').textContent = formatter.format(riskAmount);
+            document.getElementById('lossPerLoss').textContent = formatter.format(lossPerLoss);
+            document.getElementById('profitPerWin').textContent = formatter.format(profitPerWin);
+            document.getElementById('targetReturn').textContent = formatter.format(targetReturn);
+            document.getElementById('requiredWins').textContent = requiredWins.toLocaleString();
+            document.getElementById('deploymentAmount').textContent = formatter.format(deploymentAmount);
+            
+            // Highlighted Result
+            document.getElementById('requiredBattingAverage').textContent = percentFormatter.format(requiredBattingAverage) + '%';
+
+
+            // 6. Update Alert Box based on Win Requirement
+            const maxPossibleWins = totalTrades;
+
+            if (requiredWins > maxPossibleWins) {
+                document.getElementById('alertBox').classList.remove('hidden');
+                document.getElementById('alertBox').classList.remove('bg-yellow-100', 'border-yellow-500');
+                document.getElementById('alertBox').classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+                document.getElementById('alertBox').querySelector('.font-bold').textContent = "🚨 Warning: Impossible Goal!";
+                document.getElementById('alertMessage').textContent = `Your required wins (${requiredWins.toLocaleString()}) exceed the total trades available (${totalTrades}). You need to increase your R:R ratio, decrease your target, or increase your trade risk.`;
+            } else if (requiredBattingAverage > 50) {
+                document.getElementById('alertBox').classList.remove('hidden');
+                document.getElementById('alertBox').classList.remove('bg-red-100', 'border-red-500', 'text-red-700');
+                document.getElementById('alertBox').classList.add('bg-yellow-100', 'border-yellow-500', 'text-yellow-700');
+                document.getElementById('alertBox').querySelector('.font-bold').textContent = "Heads up on Win Rate!";
+                document.getElementById('alertMessage').textContent = `A required win rate of ${percentFormatter.format(requiredBattingAverage)}% is often high for traders at this R:R.`;
+            } else {
+                document.getElementById('alertBox').classList.add('hidden');
+            }
+        }
+
+        // Run calculations on load with initial values
+        window.onload = updateCalculations;
+    </script>
+</body>
+</html>
